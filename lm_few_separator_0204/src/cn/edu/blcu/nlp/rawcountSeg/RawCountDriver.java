@@ -24,13 +24,16 @@ import com.hadoop.compression.lzo.LzoCodec;
 
 
 
-public class RawCountDriver_few {
+public class RawCountDriver {
 	public static void main(String[] args) {
-		int order = 3;
+		//int order = 3;
 		int tasks = 1;// 设置为7
 		String input = null;
 		String rawCountPath = null;
 		int isLzo = 0;// 等于0表示压缩
+		String corpusCodeFormat="gbk";
+		int startOrder=1;
+		int endOrder=3;
 		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-input")) {
@@ -39,16 +42,22 @@ public class RawCountDriver_few {
 			} else if (args[i].equals("-rawcount")) {
 				rawCountPath = args[++i];
 				System.out.println("rawCountPath--->" + rawCountPath);
-			}else if (args[i].equals("-order")) {
-				order = Integer.parseInt(args[++i]);
-				System.out.println("order--->" + order);
-			} else if (args[i].equals("-tasks")) {
+			}else if (args[i].equals("-startOrder")) {
+				startOrder = Integer.parseInt(args[++i]);
+				System.out.println("startOrder--->" + startOrder);
+			} else if(args[i].equals("-endOrder")){
+				endOrder=Integer.parseInt(args[++i]);
+				System.out.println("endOrder--->" + endOrder);
+			}else if (args[i].equals("-tasks")) {
 				tasks = Integer.parseInt(args[++i]);
 				System.out.println("tasks--->" + tasks);
 			} else if (args[i].equals("-isLzo")) {
 				isLzo = Integer.parseInt(args[++i]);
 				System.out.println("isLzo---->" + isLzo);
-			} else {
+			} else if(args[i].equals("-codeFormat")){
+				corpusCodeFormat=args[++i].toLowerCase();
+				System.out.println("corpusCodeFormat----->"+corpusCodeFormat);
+			}else {
 				System.out.println("there exists invalid parameters--->" + args[i]);
 				break;
 			}
@@ -58,14 +67,15 @@ public class RawCountDriver_few {
 		try {
 			
 			Configuration conf = new Configuration();
-			conf.setInt("order", order);
-			
+			conf.setInt("startOrder", startOrder);
+			conf.setInt("endOrder", startOrder);
+			//conf.set("corpusCodeFormat", corpusCodeFormat);
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
 			
 			Job rawCountJob = Job.getInstance(conf, "rawCountJob");
 			System.out.println(rawCountJob.getJobName() + " is running!!!");
-			rawCountJob.setJarByClass(RawCountDriver_few.class);
+			rawCountJob.setJarByClass(RawCountDriver.class);
 
 			rawCountJob.setMapperClass(RawCountMapper.class);
 			rawCountJob.setReducerClass(RawCountReducer.class);

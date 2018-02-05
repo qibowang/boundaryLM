@@ -44,6 +44,7 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 	private int needSuppLen = 0;// 右侧字符个数不足的时候，需要添加的字符的个数
 	private boolean flag = false;//
 	private int endIndex;
+	private String corpusCodeFormat="gbk";
 	//Logger log = LoggerFactory.getLogger(MiddleSegRawCountMapper.class);
 
 	@Override
