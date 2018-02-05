@@ -5,10 +5,10 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
-import java.awt.geom.CubicCurve2D;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class RawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable
 	private Text resKey = new Text();
 	private final IntWritable ONE = new IntWritable(1);
 
-	Logger log = LoggerFactory.getLogger(RawCountMapper.class);
+	//Logger log = LoggerFactory.getLogger(RawCountMapper.class);
 
 	private String ngram = "";
 	private String line = "";
@@ -61,7 +61,7 @@ public class RawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable
 		}
 		line = processLine(line);// 去除POS信息以及进行标点替换
 		line = line.replace(" ", "");// 去除SEG信息
-		log.info("line---->"+line);
+		//log.info("line---->"+line);
 		line = preLine + line;
 		lineLen = line.length();
 		if (lineLen < endOrder) {
@@ -73,7 +73,7 @@ public class RawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable
 				strArr = strTemp.split("\t");
 				nTemp = Integer.parseInt(strArr[1]);
 				needSuppStr = strArr[0];
-				log.info("still need supp--->"+needSuppStr);
+				//log.info("still need supp--->"+needSuppStr);
 				
 				for (index = 0; index < lineLen; index++) {
 					cTemp = line.charAt(index);
@@ -82,7 +82,7 @@ public class RawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable
 					}
 					if ((needSuppStr.length() + sb.length()) == nTemp) {
 						resKey.set(needSuppStr + sb.toString());
-						log.info("still need supp after--->"+needSuppStr);
+						//log.info("still need supp after--->"+needSuppStr + sb.toString());
 						context.write(resKey, ONE);
 						break;
 					}
@@ -96,9 +96,9 @@ public class RawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable
 						resKey.set(ngram);
 						context.write(resKey, ONE);
 					} else {
-						log.info("ngram Before Replace--->"+ngram);
+						//log.info("ngram Before Replace--->"+ngram);
 						ngram = ngram.replace(SEPARATORSTR, "");
-						log.info("ngram after Replace--->"+ngram);
+						//log.info("ngram after Replace--->"+ngram);
 						ngramLen = ngram.length();
 						sb.setLength(0);
 						if (ngramLen < orderTemp) {
@@ -108,7 +108,7 @@ public class RawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable
 									sb.append(cTemp);
 									if ((sb.length() + ngramLen) == orderTemp) {
 										resKey.set(ngram + sb.toString());
-										log.info("ngram after supp---->"+resKey.toString());
+										//log.info("ngram after supp---->"+resKey.toString());
 										context.write(resKey, ONE);
 										ngramLen = orderTemp;
 										break;

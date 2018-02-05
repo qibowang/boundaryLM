@@ -44,8 +44,11 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 	private int needSuppLen = 0;// 右侧字符个数不足的时候，需要添加的字符的个数
 	private boolean flag = false;//
 	private int endIndex;
-	private String corpusCodeFormat="gbk";
-	//Logger log = LoggerFactory.getLogger(MiddleSegRawCountMapper.class);
+	private String corpusCodeFormat = "gbk";
+	private int tempIndex = 0;
+	private int leftLen = 0;
+	private int rightLen = 0;
+	// Logger log = LoggerFactory.getLogger(MiddleSegRawCountMapper.class);
 
 	@Override
 	protected void setup(Mapper<LongWritable, Text, Text, IntWritable>.Context context)
@@ -65,13 +68,13 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 			e.printStackTrace();
 		}
 		currentLine = processLine(currentLine);
-		//log.info("pre line---->" + preLine);
-		//log.info("current line---->" + currentLine);
+		// log.info("pre line---->" + preLine);
+		// log.info("current line---->" + currentLine);
 
 		currentLineLen = currentLine.length();
-		if (currentLineLen <= 2*endOrder) {
-			preLine = preLine + " " +currentLine;
-			preLineLen = preLineLen + currentLineLen+1;
+		if (currentLineLen <= 2 * endOrder) {
+			preLine = preLine + currentLine;
+			preLineLen = preLineLen + currentLineLen;
 		} else {
 			// log.info("currentLineList--->" + currentLineList.size());
 			suppMaxLen = SUPPMAXLEN < currentLineLen ? SUPPMAXLEN : currentLineLen;
@@ -87,9 +90,7 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 				for (index = 0; index < suppMaxLen; index++) {
 					cTemp = currentLine.charAt(index);
 					// log.info("supp" + cTemp);
-					if (cTemp == sepChar) {
-						break;
-					} else if (cTemp != ' ') {
+					if (cTemp != ' ' && cTemp != sepChar) {
 						rightSuppSub.append(cTemp);
 						needSuppLen--;
 						if (needSuppLen == 0) {
@@ -103,91 +104,99 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 			}
 			// }
 			currentLineList.clear();
-			blankIndexList = blankCount(currentLine, currentLineLen);
+			blankIndexList = sepCount(currentLine, currentLineLen);
 
-			//int leftIndex = 0;
-			//int rightIndex = 0;
+			// int leftIndex = 0;
+			// int rightIndex = 0;
 			char cTemp;
 			suppMaxLen = SUPPMAXLEN < preLineLen ? SUPPMAXLEN : preLineLen;
 			for (currentOrder = startOrder; currentOrder <= endOrder; currentOrder += 2) {
 				// log.info("current order--->" + currentOrder);
 				for (int blankIndex : blankIndexList) {
-					flag = false;
-					leftSb.setLength(0);
-					rightSb.setLength(0);
-					for (int leftIndex = blankIndex - 1; leftIndex >= 0; leftIndex--) {
-						cTemp = currentLine.charAt(leftIndex);
-						if (cTemp == sepChar) {
-							// log.info("left出现分隔符");
-							flag = true;
-							break;
+					for (tempIndex = 1; tempIndex < currentOrder; tempIndex++) {
+
+						flag = false;
+						leftSb.setLength(0);
+						rightSb.setLength(0);
+						for (int leftIndex = blankIndex - 1; leftIndex >= 0; leftIndex--) {
+							cTemp = currentLine.charAt(leftIndex);
+							if (cTemp == sepChar) {
+								// log.info("left出现分隔符");
+								flag = true;
+								break;
+							}
+							if (cTemp != ' ') {
+								leftSb.append(cTemp);
+							}
+							if (leftSb.toString().length() == tempIndex) {
+								// log.info("left长度满足情况");
+								break;
+							}
 						}
-						if (cTemp != ' ') {
-							leftSb.append(cTemp);
-						}
-						if (leftSb.toString().length() == currentOrder / 2) {
-							// log.info("left长度满足情况");
-							break;
-						}
-					}
-					if (flag)
-						continue;
-					sLeft = leftSb.toString();
-					sLeftLen = sLeft.length();
-					if (sLeftLen != currentOrder / 2) {
-						if (preLineLen != 0) {
-							//log.info("prelineLen---->"+preLineLen);
-							endIndex=preLineLen>suppMaxLen?(preLineLen-suppMaxLen):0;
-							for (int leftIndex = preLineLen - 1; leftIndex > endIndex; leftIndex--) {
-								//log.info("leftIndex--->"+leftIndex);
-								cTemp = preLine.charAt(leftIndex);
-								// log.info("向上一行扩展"+cTemp);
-								if (cTemp == sepChar) {
-									// log.info("left向上一行扩展时出现分隔符");
-									flag = true;
-									break;
-								} else if (cTemp != ' ') {
-									leftSb.append(cTemp);
-								}
-								if (leftSb.toString().length() == currentOrder / 2) {
-									// log.info("left向上一行扩展后长度满足要求-->"+leftSb.reverse().toString());
-									break;
+						if (flag)
+							continue;
+						sLeft = leftSb.toString();
+						sLeftLen = sLeft.length();
+						if (sLeftLen != currentOrder - tempIndex) {
+							if (preLineLen != 0) {
+								// log.info("prelineLen---->"+preLineLen);
+								endIndex = preLineLen > suppMaxLen ? (preLineLen - suppMaxLen) : 0;
+								for (int leftIndex = preLineLen - 1; leftIndex > endIndex; leftIndex--) {
+									// log.info("leftIndex--->"+leftIndex);
+									cTemp = preLine.charAt(leftIndex);
+									// log.info("向上一行扩展"+cTemp);
+									if (cTemp != ' ' && cTemp != sepChar) {
+										leftSb.append(cTemp);
+									}
+									/*
+									 * if (cTemp == sepChar) { //
+									 * log.info("left向上一行扩展时出现分隔符"); flag =
+									 * true; break; } else if (cTemp != '
+									 * '&&cTemp!=sepChar) {
+									 * leftSb.append(cTemp); }
+									 */
+									if (leftSb.toString().length() == currentOrder - tempIndex) {
+										// log.info("left向上一行扩展后长度满足要求-->"+leftSb.reverse().toString());
+										break;
+									}
 								}
 							}
 						}
-					}
-					if (flag)
-						continue;
-					sLeft = leftSb.reverse().toString();
-					sLeftLen = sLeft.length();
-					if (sLeftLen != currentOrder / 2)
-						continue;
-					for (int rightIndex = blankIndex + 1; rightIndex < currentLineLen; rightIndex++) {
-						cTemp = currentLine.charAt(rightIndex);
-						if (cTemp == sepChar) {
-							// log.info("right出现分隔符");
-							flag = true;
-							break;
-						} else if (cTemp != ' ') {
-							rightSb.append(cTemp);
+						if (flag)
+							continue;
+						sLeft = leftSb.reverse().toString();
+						sLeftLen = sLeft.length();
+						if (sLeftLen != currentOrder / 2)
+							continue;
+						for (int rightIndex = blankIndex + 1; rightIndex < currentLineLen; rightIndex++) {
+							cTemp = currentLine.charAt(rightIndex);
+							/*
+							 * if (cTemp == sepChar) { //
+							 * log.info("right出现分隔符"); flag = true; break; }
+							 * else if (cTemp != ' ') { rightSb.append(cTemp); }
+							 */
+							if (cTemp != ' ' && cTemp != sepChar) {
+								rightSb.append(cTemp);
+							}
+							if (rightSb.toString().length() == currentOrder / 2) {
+								// log.info("right长度满足要求");
+								break;
+							}
 						}
-						if (rightSb.toString().length() == currentOrder / 2) {
-							// log.info("right长度满足要求");
-							break;
+						if (flag)
+							continue;
+						sRight = rightSb.toString();
+						sRightLen = sRight.length();
+						if (sRightLen != currentOrder / 2) {
+							currentLineList
+									.add(sLeft + sRight + "\t" + currentOrder + "\t" + (currentOrder / 2 - sRightLen));
+						} else {
+							ngram = sLeft + sRight;
+							// log.info("ngram---->" + ngram);
+							resKey.set(ngram);
+							context.write(resKey, ONE);
 						}
-					}
-					if (flag)
-						continue;
-					sRight = rightSb.toString();
-					sRightLen = sRight.length();
-					if (sRightLen != currentOrder / 2) {
-						currentLineList
-								.add(sLeft + sRight + "\t" + currentOrder + "\t" + (currentOrder / 2 - sRightLen));
-					} else {
-						ngram = sLeft + sRight;
-						//log.info("ngram---->" + ngram);
-						resKey.set(ngram);
-						context.write(resKey, ONE);
+
 					}
 				}
 
@@ -198,10 +207,10 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 
 	}
 
-	private List<Integer> blankCount(String line, int lineLen) {
+	private List<Integer> sepCount(String line, int lineLen) {
 		List<Integer> indexList = new ArrayList<Integer>();
 		for (int i = 0; i < lineLen; i++) {
-			if (line.charAt(i) == ' ')
+			if (line.charAt(i) == '▲')
 				indexList.add(i);
 		}
 		return indexList;
@@ -211,8 +220,10 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 		String posPattern = "/[a-zA-Z]{1,5}";
 		String numberRegrex = "\\d+[.,]?\\d*";
 		String numSign = "■";
+		String sepSign = "▲";
 		line = line.replaceAll(posPattern, "");
 		line = line.replaceAll(numberRegrex, numSign);
+		line = line.replaceAll(" ", sepSign);
 		line = noneHZRep(line);
 		line = line.replaceAll("(▲( ▲)*)+", "▲");
 		line = line.replaceAll("(■( ■)*)+", "■");
