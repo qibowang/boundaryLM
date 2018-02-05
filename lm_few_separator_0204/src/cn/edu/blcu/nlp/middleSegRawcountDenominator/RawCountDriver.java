@@ -34,8 +34,10 @@ public class RawCountDriver {
 		String corpusCodeFormat="gbk";
 		int startOrder=1;
 		int endOrder=3;
-		
-		for (int i = 0; i < args.length; i++) {
+		boolean parameterValid=false;
+		int parameterNum = args.length;
+		for (int i = 0; i < parameterNum; i++) {
+			//System.out.println(args[i]);
 			if (args[i].equals("-input")) {
 				input = args[++i];
 				System.out.println("input--->" + input);
@@ -59,16 +61,20 @@ public class RawCountDriver {
 				System.out.println("corpusCodeFormat----->"+corpusCodeFormat);
 			}else {
 				System.out.println("there exists invalid parameters--->" + args[i]);
-				break;
+				parameterValid=true;
 			}
 			
 		}
 		
+		if(parameterValid){
+			System.out.println("parameters invalid!!!!");
+			System.exit(1);
+		}
 		try {
 			
 			Configuration conf = new Configuration();
 			conf.setInt("startOrder",startOrder);
-			conf.setInt("endOrder", startOrder);
+			conf.setInt("endOrder", endOrder);
 			//conf.set("corpusCodeFormat", corpusCodeFormat);
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
