@@ -67,7 +67,7 @@ public class RawCountDriver {
 		try {
 			
 			Configuration conf = new Configuration();
-			conf.setInt("startOrder", startOrder);
+			conf.setInt("startOrder",startOrder);
 			conf.setInt("endOrder", startOrder);
 			//conf.set("corpusCodeFormat", corpusCodeFormat);
 			conf.setBoolean("mapreduce.compress.map.output", true);
