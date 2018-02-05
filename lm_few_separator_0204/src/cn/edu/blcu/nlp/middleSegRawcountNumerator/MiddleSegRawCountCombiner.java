@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.middleSegRawcount;
+package cn.edu.blcu.nlp.middleSegRawcountNumerator;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.rawcountSeg;
+package cn.edu.blcu.nlp.middleSegRawcountDenominator;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.IntWritable;
