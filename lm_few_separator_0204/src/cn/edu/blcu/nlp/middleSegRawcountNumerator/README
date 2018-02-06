@@ -1,1 +1,2 @@
 该包的作用是计算midModel的分子
+该包下的程序是基于原始带有分词信息的语料进行ngram-count,其结果作为middle model的分子部分

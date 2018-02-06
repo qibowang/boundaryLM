@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import com.hadoop.compression.lzo.LzoCodec;
 
-public class MiddleSegRawCountDriver {
+public class MiddleSegRawcountNumeratorDriver {
 	public static void main(String[] args) {
 		int startOrder=0;
 		int endOrder=3;
@@ -60,11 +60,12 @@ public class MiddleSegRawCountDriver {
 			
 			Job job = Job.getInstance(conf,"middleSegRawcountNumerator job");
 			System.out.println(job.getJobName()+" is running!");
-			job.setJarByClass(MiddleSegRawCountDriver.class);
+			job.setJarByClass(MiddleSegRawcountNumeratorDriver.class);
 			
-			job.setMapperClass(MiddleSegRawCountMapper.class);
-			job.setCombinerClass(MiddleSegRawCountCombiner.class);
-			job.setReducerClass(MiddleSegRawCountReducer.class);
+			job.setMapperClass(MiddleSegRawcountNumeratorMapper.class);
+			job.setCombinerClass(MiddleSegRawcountNumeratorCombiner.class);
+			job.setReducerClass(MiddleSegRawcountNumeratorReducer.class);
+			job.setPartitionerClass(MiddleSegRawcountNumeratorPartitioner.class);
 			job.setNumReduceTasks(tasks);
 			
 			

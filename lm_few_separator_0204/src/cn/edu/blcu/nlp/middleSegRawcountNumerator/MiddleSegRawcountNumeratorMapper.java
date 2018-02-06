@@ -10,10 +10,10 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
-public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+public class MiddleSegRawcountNumeratorMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
 	private final IntWritable ONE = new IntWritable(1);
 	private Text resKey = new Text();
 	private int startOrder;//
@@ -43,13 +43,13 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 	private int suppMaxLen = 0;
 	private String needSuppStr = "";// 右侧字符个数不足的时候，此时左侧和右侧的拼接结果
 	private int needSuppLen = 0;// 右侧字符个数不足的时候，需要添加的字符的个数
-	private boolean flag = false;//
+	
 	private int endIndex;
 	private String corpusCodeFormat = "gbk";
 	private int tempIndex = 0;
-	private int leftLen = 0;
-	private int rightLen = 0;
-	Logger log = LoggerFactory.getLogger(MiddleSegRawCountMapper.class);
+	//private int leftLen = 0;
+	//private int rightLen = 0;
+	//Logger log = LoggerFactory.getLogger(MiddleSegRawCountMapper.class);
 
 	@Override
 	protected void setup(Mapper<LongWritable, Text, Text, IntWritable>.Context context)
@@ -58,7 +58,7 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 		// startOrder和endOrder都必须是奇数
 		startOrder = conf.getInt("startOrder", 0);
 		endOrder = conf.getInt("endOrder", 3);
-
+		corpusCodeFormat=conf.get("corpusCodeFormat", corpusCodeFormat);
 	}
 
 	@Override
@@ -69,8 +69,8 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 			e.printStackTrace();
 		}
 		currentLine = processLine(currentLine);
-		log.info("pre line---->" + preLine);
-		log.info("current line---->" + currentLine);
+		//log.info("pre line---->" + preLine);
+		//log.info("current line---->" + currentLine);
 		currentLineLen = currentLine.length();
 		
 		if (currentLineLen <= 2 * endOrder) {
@@ -83,7 +83,7 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 				rightSuppSub.setLength(0);
 				sATemp = str.split("\t");
 				needSuppStr = sATemp[0];
-				log.info("need supp--->"+needSuppStr);
+				//log.info("need supp--->"+needSuppStr);
 				needSuppLen = Integer.parseInt(sATemp[1]);
 				// log.info("suppMaxLen--->" + suppMaxLen);
 				for (index = 0; index < suppMaxLen; index++) {
@@ -93,8 +93,8 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 						rightSuppSub.append(cTemp);
 						needSuppLen--;
 						if (needSuppLen == 0) {
-							resKey.set(needSuppStr +sepStr +rightSuppSub.toString());
-							log.info("after supp--->" + resKey.toString());
+							resKey.set(needSuppStr +rightSuppSub.toString());
+							//log.info("after supp--->" + resKey.toString());
 							context.write(resKey, ONE);
 							break;
 						}
@@ -108,10 +108,10 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 			char cTemp;
 			suppMaxLen = SUPPMAXLEN < preLineLen ? SUPPMAXLEN : preLineLen;
 			for (currentOrder = startOrder; currentOrder <= endOrder; currentOrder ++) {
-				log.info("current order--->" + currentOrder);
+				//log.info("current order--->" + currentOrder);
 				for (int blankIndex : blankIndexList) {
 					for (tempIndex = 1; tempIndex < currentOrder; tempIndex++) {
-						flag = false;
+
 						leftSb.setLength(0);
 						rightSb.setLength(0);
 						for (int leftIndex = blankIndex - 1; leftIndex >= 0; leftIndex--) {
@@ -164,28 +164,23 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 								break;
 							}
 						}
-						
 						sRight = rightSb.toString();
-						
 						sRightLen = sRight.length();
 						if (sRightLen != currentOrder -tempIndex) {
 							currentLineList
 									.add(sLeft +sepStr+ sRight + "\t"  + (currentOrder -tempIndex - sRightLen));
 						} else {
 							ngram = sLeft +sepStr+ sRight;
-							log.info("ngram---->" + ngram);
+							//log.info("ngram---->" + ngram);
 							resKey.set(ngram);
 							context.write(resKey, ONE);
 						}
-
 					}
 				}
-
 			}
 			preLine = currentLine;
 			preLineLen = currentLineLen;
 		}
-
 	}
 
 	private List<Integer> sepCount(String line, int lineLen) {

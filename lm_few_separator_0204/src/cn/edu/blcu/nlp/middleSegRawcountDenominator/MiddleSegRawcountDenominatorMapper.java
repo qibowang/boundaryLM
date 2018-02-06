@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Created by root on 2017/5/24.
  */
-public class RawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+public class MiddleSegRawcountDenominatorMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
 	private final char SEPARATOR = '▲';
 	private final String SEPARATORSTR = "▲";
 

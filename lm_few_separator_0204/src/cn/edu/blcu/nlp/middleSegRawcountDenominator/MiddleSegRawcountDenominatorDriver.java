@@ -24,7 +24,7 @@ import com.hadoop.compression.lzo.LzoCodec;
 
 
 
-public class RawCountDriver {
+public class MiddleSegRawcountDenominatorDriver {
 	public static void main(String[] args) {
 		//int order = 3;
 		int tasks = 1;// 设置为7
@@ -79,14 +79,14 @@ public class RawCountDriver {
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
 			
-			Job rawCountJob = Job.getInstance(conf, "rawCountJob");
+			Job rawCountJob = Job.getInstance(conf, "middleSegRawcountDenominator job");
 			System.out.println(rawCountJob.getJobName() + " is running!!!");
-			rawCountJob.setJarByClass(RawCountDriver.class);
+			rawCountJob.setJarByClass(MiddleSegRawcountDenominatorDriver.class);
 
-			rawCountJob.setMapperClass(RawCountMapper.class);
-			rawCountJob.setReducerClass(RawCountReducer.class);
-			rawCountJob.setCombinerClass(RawCountCombiner.class);
-			rawCountJob.setPartitionerClass(RawCountPartitioner.class);
+			rawCountJob.setMapperClass(MiddleSegRawcountDenominatorMapper.class);
+			rawCountJob.setReducerClass(MiddleSegRawcountDenominatorReducer.class);
+			rawCountJob.setCombinerClass(MiddleSegRawcountDenominatorCombiner.class);
+			rawCountJob.setPartitionerClass(MiddleSegRawcountDenominatorPartitioner.class);
 			rawCountJob.setNumReduceTasks(tasks);
 
 			rawCountJob.setMapOutputKeyClass(Text.class);

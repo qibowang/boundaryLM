@@ -1,1 +1,1 @@
-该包下的程序是基于原始带有分词信息的语料进行ngram-count
+该包下的程序是基于原始带有分词信息的语料进行ngram-count,其结果作为middle model的分母部分

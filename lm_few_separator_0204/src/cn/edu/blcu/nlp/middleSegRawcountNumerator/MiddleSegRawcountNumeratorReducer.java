@@ -3,16 +3,16 @@ package cn.edu.blcu.nlp.middleSegRawcountNumerator;
 import java.io.IOException;
 
 import org.apache.hadoop.io.IntWritable;
-
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class MiddleSegRawCountCombiner extends Reducer<Text,IntWritable,Text,IntWritable>{
-	private IntWritable resValue = new IntWritable();
+public class MiddleSegRawcountNumeratorReducer extends Reducer<Text,IntWritable,Text,LongWritable>{
+	private LongWritable resValue = new LongWritable();
 	@Override
 	protected void reduce(Text ngram, Iterable<IntWritable> values,
 			Context context) throws IOException, InterruptedException {
-		int sum=0;
+		long sum =0l;
 		for(IntWritable value:values){
 			sum+=value.get();
 		}
