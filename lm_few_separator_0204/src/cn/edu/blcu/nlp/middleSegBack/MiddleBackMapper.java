@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.middleBack;
+package cn.edu.blcu.nlp.middleSegBack;
 
 import java.io.IOException;
 

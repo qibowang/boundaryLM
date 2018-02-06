@@ -58,7 +58,7 @@ public class MiddleSegRawCountDriver {
 			conf.setInt("startOrder", startOrder);
 			conf.setInt("endOrder", endOrder);
 			
-			Job job = Job.getInstance(conf,"middle seg rawcount");
+			Job job = Job.getInstance(conf,"middleSegRawcountNumerator job");
 			System.out.println(job.getJobName()+" is running!");
 			job.setJarByClass(MiddleSegRawCountDriver.class);
 			

@@ -10,8 +10,8 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
 	private final IntWritable ONE = new IntWritable(1);
@@ -22,8 +22,9 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 	private int currentLineLen = 0;// 要处理的当前行的长度
 	private String preLine = "";// 当前行的上一行
 	private int preLineLen = 0;
-	// private final String sepString = "▲";// 分隔符字符串
+
 	private final char sepChar = '▲';// 分隔符字符
+	private final String sepStr="▲";// 分隔符字符串
 	private String ngram = "";// ngram串
 	private int currentOrder = 0;
 	private StringBuffer leftSb = new StringBuffer();// 分隔符左侧的StringBuffer对象
@@ -48,7 +49,7 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 	private int tempIndex = 0;
 	private int leftLen = 0;
 	private int rightLen = 0;
-	// Logger log = LoggerFactory.getLogger(MiddleSegRawCountMapper.class);
+	Logger log = LoggerFactory.getLogger(MiddleSegRawCountMapper.class);
 
 	@Override
 	protected void setup(Mapper<LongWritable, Text, Text, IntWritable>.Context context)
@@ -68,24 +69,22 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 			e.printStackTrace();
 		}
 		currentLine = processLine(currentLine);
-		// log.info("pre line---->" + preLine);
-		// log.info("current line---->" + currentLine);
-
+		log.info("pre line---->" + preLine);
+		log.info("current line---->" + currentLine);
 		currentLineLen = currentLine.length();
+		
 		if (currentLineLen <= 2 * endOrder) {
 			preLine = preLine + currentLine;
 			preLineLen = preLineLen + currentLineLen;
 		} else {
 			// log.info("currentLineList--->" + currentLineList.size());
 			suppMaxLen = SUPPMAXLEN < currentLineLen ? SUPPMAXLEN : currentLineLen;
-			// if (currentLineList.size() > 0) {
 			for (String str : currentLineList) {
 				rightSuppSub.setLength(0);
 				sATemp = str.split("\t");
 				needSuppStr = sATemp[0];
-				// log.info("need supp-->" + str);
-				currentOrder = Integer.parseInt(sATemp[1]);
-				needSuppLen = Integer.parseInt(sATemp[2]);
+				log.info("need supp--->"+needSuppStr);
+				needSuppLen = Integer.parseInt(sATemp[1]);
 				// log.info("suppMaxLen--->" + suppMaxLen);
 				for (index = 0; index < suppMaxLen; index++) {
 					cTemp = currentLine.charAt(index);
@@ -94,38 +93,31 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 						rightSuppSub.append(cTemp);
 						needSuppLen--;
 						if (needSuppLen == 0) {
-							resKey.set(needSuppStr + rightSuppSub.toString());
-							// log.info("after supp--->" + resKey.toString());
+							resKey.set(needSuppStr +sepStr +rightSuppSub.toString());
+							log.info("after supp--->" + resKey.toString());
 							context.write(resKey, ONE);
 							break;
 						}
 					}
 				}
 			}
-			// }
+			
 			currentLineList.clear();
 			blankIndexList = sepCount(currentLine, currentLineLen);
 
-			// int leftIndex = 0;
-			// int rightIndex = 0;
 			char cTemp;
 			suppMaxLen = SUPPMAXLEN < preLineLen ? SUPPMAXLEN : preLineLen;
-			for (currentOrder = startOrder; currentOrder <= endOrder; currentOrder += 2) {
-				// log.info("current order--->" + currentOrder);
+			for (currentOrder = startOrder; currentOrder <= endOrder; currentOrder ++) {
+				log.info("current order--->" + currentOrder);
 				for (int blankIndex : blankIndexList) {
 					for (tempIndex = 1; tempIndex < currentOrder; tempIndex++) {
-
 						flag = false;
 						leftSb.setLength(0);
 						rightSb.setLength(0);
 						for (int leftIndex = blankIndex - 1; leftIndex >= 0; leftIndex--) {
 							cTemp = currentLine.charAt(leftIndex);
-							if (cTemp == sepChar) {
-								// log.info("left出现分隔符");
-								flag = true;
-								break;
-							}
-							if (cTemp != ' ') {
+							
+							if (cTemp != ' '&&cTemp!=sepChar) {
 								leftSb.append(cTemp);
 							}
 							if (leftSb.toString().length() == tempIndex) {
@@ -133,11 +125,10 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 								break;
 							}
 						}
-						if (flag)
-							continue;
+						
 						sLeft = leftSb.toString();
 						sLeftLen = sLeft.length();
-						if (sLeftLen != currentOrder - tempIndex) {
+						if (sLeftLen != tempIndex) {
 							if (preLineLen != 0) {
 								// log.info("prelineLen---->"+preLineLen);
 								endIndex = preLineLen > suppMaxLen ? (preLineLen - suppMaxLen) : 0;
@@ -148,51 +139,41 @@ public class MiddleSegRawCountMapper extends Mapper<LongWritable, Text, Text, In
 									if (cTemp != ' ' && cTemp != sepChar) {
 										leftSb.append(cTemp);
 									}
-									/*
-									 * if (cTemp == sepChar) { //
-									 * log.info("left向上一行扩展时出现分隔符"); flag =
-									 * true; break; } else if (cTemp != '
-									 * '&&cTemp!=sepChar) {
-									 * leftSb.append(cTemp); }
-									 */
-									if (leftSb.toString().length() == currentOrder - tempIndex) {
+									
+									if (leftSb.toString().length() == tempIndex) {
 										// log.info("left向上一行扩展后长度满足要求-->"+leftSb.reverse().toString());
 										break;
 									}
 								}
 							}
 						}
-						if (flag)
-							continue;
+						
 						sLeft = leftSb.reverse().toString();
+						//log.info("left--->"+sLeft);
 						sLeftLen = sLeft.length();
-						if (sLeftLen != currentOrder / 2)
+						if (sLeftLen != tempIndex)
 							continue;
 						for (int rightIndex = blankIndex + 1; rightIndex < currentLineLen; rightIndex++) {
 							cTemp = currentLine.charAt(rightIndex);
-							/*
-							 * if (cTemp == sepChar) { //
-							 * log.info("right出现分隔符"); flag = true; break; }
-							 * else if (cTemp != ' ') { rightSb.append(cTemp); }
-							 */
+							
 							if (cTemp != ' ' && cTemp != sepChar) {
 								rightSb.append(cTemp);
 							}
-							if (rightSb.toString().length() == currentOrder / 2) {
+							if (rightSb.toString().length() == currentOrder -tempIndex) {
 								// log.info("right长度满足要求");
 								break;
 							}
 						}
-						if (flag)
-							continue;
+						
 						sRight = rightSb.toString();
+						
 						sRightLen = sRight.length();
-						if (sRightLen != currentOrder / 2) {
+						if (sRightLen != currentOrder -tempIndex) {
 							currentLineList
-									.add(sLeft + sRight + "\t" + currentOrder + "\t" + (currentOrder / 2 - sRightLen));
+									.add(sLeft +sepStr+ sRight + "\t"  + (currentOrder -tempIndex - sRightLen));
 						} else {
-							ngram = sLeft + sRight;
-							// log.info("ngram---->" + ngram);
+							ngram = sLeft +sepStr+ sRight;
+							log.info("ngram---->" + ngram);
 							resKey.set(ngram);
 							context.write(resKey, ONE);
 						}
