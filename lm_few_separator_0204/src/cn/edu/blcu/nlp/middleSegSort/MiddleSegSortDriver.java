@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.sort;
+package cn.edu.blcu.nlp.middleSegSort;
 
 import java.io.IOException;
 
@@ -16,12 +16,14 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.hadoop.compression.lzo.LzoCodec;
 
-public class SortDriver {
+public class MiddleSegSortDriver {
 	public static void main(String[] args) {
 		String input = "";
 		String output = "";
-		String lmFlag="";
-		for (int i = 0; i < args.length; i++) {
+		String lmFlag="middle";
+		boolean parameterValid=false;
+		int parameters=args.length;
+		for (int i = 0; i < parameters; i++) {
 			if (args[i].equals("-input")) {
 				input = args[++i];
 				System.out.println("input--->" + input);
@@ -33,20 +35,24 @@ public class SortDriver {
 				System.out.println("lmFlag--->"+lmFlag);
 			}else {
 				System.out.println("there exists invalid parameters--->"+args[i]);
-				break;
+				parameterValid=true;
 			}
+		}
+		if(parameterValid){
+			System.out.println("parameters invalid!!!!");
+			System.exit(1);
 		}
 		try {
 
 			Configuration conf = new Configuration();
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
-			//conf.set("lmFlag", lmFlag);
+
 			Job sortJob = Job.getInstance(conf, lmFlag+" sort Job");
 			System.out.println(sortJob.getJobName()+" is running!");
-			sortJob.setJarByClass(SortDriver.class);
-			sortJob.setMapperClass(SortMapper.class);
-			sortJob.setReducerClass(SortReducer.class);
+			sortJob.setJarByClass(MiddleSegSortDriver.class);
+			sortJob.setMapperClass(MiddleSegSortMapper.class);
+			sortJob.setReducerClass(MiddleSegSortReducer.class);
 			sortJob.setSortComparatorClass(MyComparator.class);
 			sortJob.setNumReduceTasks(1);
 

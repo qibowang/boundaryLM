@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.sort;
+package cn.edu.blcu.nlp.middleSegSort;
 
 import java.io.IOException;
 
@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class SortMapper extends Mapper<Text,Text,Text,Text>{
+public class MiddleSegSortMapper extends Mapper<Text,Text,Text,Text>{
 	
 	
 	private String valueStr;

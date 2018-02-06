@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.middleProbJoinBack;
+package cn.edu.blcu.nlp.middleSegProbJoinBack;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;

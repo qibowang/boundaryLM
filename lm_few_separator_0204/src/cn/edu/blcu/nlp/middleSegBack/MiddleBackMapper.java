@@ -17,28 +17,18 @@ public class MiddleBackMapper extends Mapper<Text,LongWritable,Text,Text>{
 			throws IOException, InterruptedException {
 		ngram = key.toString();
 		wordsNum = ngram.length();
-		if(middleJudge(ngram,wordsNum)){
+		
 			if(wordsNum>1){
-				resKey.set(ngram.substring(1,wordsNum-1));
+				resKey.set(ngram.substring(0,wordsNum-1));
+				resValue.set(ngram+"\t"+value.get());
+				context.write(resKey, resValue);
+				
+				resKey.set(ngram.substring(1));
 				resValue.set(ngram+"\t"+value.get());
 				context.write(resKey, resValue);
 			}
-		}
+		
 	}
 	
-	private boolean middleJudge(String ngram,int wordsNum){
-		int firstIndex= ngram.indexOf(SEP);
-		int lastIndex = ngram.lastIndexOf(SEP);
-		int mid=wordsNum/2;
-		if(wordsNum%2==1){
-			if(firstIndex==lastIndex){
-				if(firstIndex==mid){
-					return true;
-				}
-				return false;
-			}
-			return false;
-		}
-		return false;
-	}
+	
 }

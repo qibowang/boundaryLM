@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import com.hadoop.compression.lzo.LzoCodec;
 
-import cn.edu.blcu.nlp.middleProbJoinBack.MyComparator;
+import cn.edu.blcu.nlp.middleSegProbJoinBack.MyComparator;
 
 public class ProbJoinBackDriver {
 	public static void main(String[] args) {

@@ -21,8 +21,11 @@ public class MiddleBackDriver{
 	public static void main(String[] args) {
 		String input="";
 		String output="";
+		String backPath="";
 		int isLzo=0;
 		int tasks=1;
+		Path outputPath=null;
+		FileSystem fs = null;
 		boolean parameterValid=false;
 		for(int i=0;i<args.length;i++){
 			if(args[i].equals("-input")){
@@ -37,6 +40,9 @@ public class MiddleBackDriver{
 			}else if(args[i].equals("-tasks")){
 				tasks=Integer.parseInt(args[++i]);
 				System.out.println("tasks--->"+tasks);
+			}else if(args[i].equals("-back")){
+				backPath=args[++i];
+				System.out.println("backPath--->"+backPath);
 			}else{
 				System.out.println("there exists invalid parameters--->"+args[i]);
 				parameterValid=true;
@@ -68,8 +74,8 @@ public class MiddleBackDriver{
 			
 			FileInputFormat.addInputPath(middleBackJob, new Path(input));
 			FileInputFormat.setInputDirRecursive(middleBackJob, true);
-			FileSystem fs = FileSystem.get(conf);
-			Path outputPath = new Path(output);
+			fs = FileSystem.get(conf);
+			outputPath= new Path(output);
 			if (fs.exists(outputPath)) {
 				fs.delete(outputPath, true);
 			}
@@ -85,7 +91,38 @@ public class MiddleBackDriver{
 				System.out.println(middleBackJob.getJobName()+" Job failed");
 			}
 			
+			
+			Job middleBackJoinJob = Job.getInstance(conf,"middle back join job");
+			
+			middleBackJoinJob.setJarByClass(MiddleBackDriver.class);
+			middleBackJoinJob.setMapperClass(MiddleBackJoinMapper.class);
+			middleBackJoinJob.setReducerClass(MiddleBackJoinReducer.class);
+			middleBackJoinJob.setNumReduceTasks(tasks);
+			
+			middleBackJoinJob.setInputFormatClass(SequenceFileInputFormat.class);
+			middleBackJoinJob.setMapOutputKeyClass(Text.class);
+			middleBackJoinJob.setMapOutputValueClass(Text.class);
+			middleBackJoinJob.setOutputKeyClass(Text.class);
+			middleBackJoinJob.setOutputValueClass(Text.class);
+			
+			FileInputFormat.addInputPath(middleBackJoinJob, new Path(output));
+			FileInputFormat.setInputDirRecursive(middleBackJoinJob, true);
+			fs = FileSystem.get(conf);
+			outputPath= new Path(backPath);
+			if (fs.exists(outputPath)) {
+				fs.delete(outputPath, true);
+			}
+			FileOutputFormat.setOutputPath(middleBackJoinJob, outputPath);
+			middleBackJoinJob.setOutputFormatClass(SequenceFileOutputFormat.class);
+			if (isLzo == 0) {
+				setLzo(middleBackJoinJob);
+			}
 
+			if (middleBackJoinJob.waitForCompletion(true)) {
+				System.out.println(middleBackJoinJob.getJobName()+" Job successed");
+			} else {
+				System.out.println(middleBackJoinJob.getJobName()+" Job failed");
+			}
 			
 		} catch (IOException | ClassNotFoundException | InterruptedException e) {
 			e.printStackTrace();

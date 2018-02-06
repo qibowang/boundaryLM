@@ -1,12 +1,12 @@
-package cn.edu.blcu.nlp.middleLM;
+package cn.edu.blcu.nlp.middleSegProbJoinBack;
 
 import java.io.IOException;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-
-public class LMReducer extends Reducer<Text,Text,Text,Text>{
+public class MiddleProbJoinBackReducer extends Reducer<Text,Text,Text,Text>{
+	
 	private String[] items;
 	private String valueStr;
 
@@ -15,7 +15,7 @@ public class LMReducer extends Reducer<Text,Text,Text,Text>{
 	protected void reduce(Text key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
 		String prob="";
-		String back="1.0";
+		String back="0.0";
 		for(Text value:values){
 			valueStr=value.toString().trim();
 			items=valueStr.split("\t");
@@ -25,9 +25,11 @@ public class LMReducer extends Reducer<Text,Text,Text,Text>{
 				back=valueStr;
 			}
 		}
+		
 		if(prob.length()!=0){
 			resValue.set(prob+"\t"+back);
 			context.write(key, resValue);
 		}
 	}
+	
 }

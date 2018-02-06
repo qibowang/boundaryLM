@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.middleProbJoinBack;
+package cn.edu.blcu.nlp.middleSegProbJoinBack;
 
 import java.io.IOException;
 

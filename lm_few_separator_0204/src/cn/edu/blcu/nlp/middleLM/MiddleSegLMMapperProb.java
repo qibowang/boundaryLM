@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-public class LMMapperProb extends Mapper<Text,Text,Text,Text>{
+public class MiddleSegLMMapperProb extends Mapper<Text,Text,Text,Text>{
 	String valueStr="";
 	String prob="";
 	String ngram="";

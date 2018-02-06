@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.sort;
+package cn.edu.blcu.nlp.middleSegSort;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;

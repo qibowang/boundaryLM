@@ -25,7 +25,9 @@ public class MiddleSegRawcountNumeratorDriver {
 		int isLzo=0;
 		String input="";
 		String output="";
-		for(int i=0;i<args.length;i++){
+		boolean parameterValid=false;
+		int parameterNum = args.length;
+		for(int i=0;i<parameterNum;i++){
 			if(args[i].equals("-input")){
 				input=args[++i];
 				System.out.println("input--->"+input);
@@ -46,10 +48,13 @@ public class MiddleSegRawcountNumeratorDriver {
 				System.out.println("endOrder--->"+endOrder);
 			}else{
 				System.out.println("there exists invalid parameters--->"+args[i]);
-				break;
+				parameterValid=true;
 			}
 		}
-		
+		if(parameterValid){
+			System.out.println("parameters invalid!!!!");
+			System.exit(1);
+		}
 		
 		try {
 			Configuration conf = new Configuration();

@@ -19,7 +19,7 @@ import com.hadoop.compression.lzo.LzoCodec;
 
 
 
-public class LMDriver {
+public class MiddleSegLMDriver {
 	public static void main(String[] args) {
 		String probPath="";
 		String backPath="";
@@ -61,8 +61,8 @@ public class LMDriver {
 			
 			Job lmJob = Job.getInstance(conf,"middle LM job");
 			
-			lmJob.setJarByClass(LMDriver.class);
-			lmJob.setReducerClass(LMReducer.class);
+			lmJob.setJarByClass(MiddleSegLMDriver.class);
+			lmJob.setReducerClass(MiddleSegLMReducer.class);
 			lmJob.setSortComparatorClass(MyComparator.class);
 			lmJob.setNumReduceTasks(tasks);
 			
@@ -71,8 +71,8 @@ public class LMDriver {
 			lmJob.setOutputKeyClass(Text.class);
 			lmJob.setOutputValueClass(Text.class);
 			
-			MultipleInputs.addInputPath(lmJob, new Path(probPath), SequenceFileInputFormat.class,LMMapperProb.class);
-			MultipleInputs.addInputPath(lmJob, new Path(backPath), SequenceFileInputFormat.class,LMMapperBack.class);
+			MultipleInputs.addInputPath(lmJob, new Path(probPath), SequenceFileInputFormat.class,MiddleSegLMMapperProb.class);
+			MultipleInputs.addInputPath(lmJob, new Path(backPath), SequenceFileInputFormat.class,MiddleSegLMMapperBack.class);
 			lmJob.setOutputFormatClass(SequenceFileOutputFormat.class);
 			
 			FileInputFormat.setInputDirRecursive(lmJob, true);
