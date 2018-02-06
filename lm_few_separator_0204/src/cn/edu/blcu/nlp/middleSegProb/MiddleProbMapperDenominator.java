@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.middleProb;
+package cn.edu.blcu.nlp.middleSegProb;
 
 import java.io.IOException;
 
