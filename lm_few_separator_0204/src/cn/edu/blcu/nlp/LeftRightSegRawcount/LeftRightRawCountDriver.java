@@ -12,7 +12,6 @@ import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.Text;
 
-
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
@@ -20,33 +19,32 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import com.hadoop.compression.lzo.LzoCodec;
 
-
-
-
-
 public class LeftRightRawCountDriver {
 	public static void main(String[] args) {
-		int startOrder=1;
-		int endOrder=3;
+		int startOrder = 1;
+		int endOrder = 3;
 		int tasks = 1;// 设置为7
 		String input = null;
 		String rawCountPath = null;
 		int isLzo = 0;// 等于0表示压缩
+
+		boolean parameterValid=false;
+		int parameterNum = args.length;
 		
-		for (int i = 0; i < args.length; i++) {
+		for (int i = 0; i < parameterNum; i++) {
 			if (args[i].equals("-input")) {
 				input = args[++i];
 				System.out.println("input--->" + input);
 			} else if (args[i].equals("-rawcount")) {
 				rawCountPath = args[++i];
 				System.out.println("rawCountPath--->" + rawCountPath);
-			}else if (args[i].equals("-startOrder")) {
+			} else if (args[i].equals("-startOrder")) {
 				startOrder = Integer.parseInt(args[++i]);
 				System.out.println("startOrder--->" + startOrder);
-			} else if(args[i].equals("-endOrder")){
+			} else if (args[i].equals("-endOrder")) {
 				endOrder = Integer.parseInt(args[++i]);
 				System.out.println("endOrder--->" + endOrder);
-			}else if (args[i].equals("-tasks")) {
+			} else if (args[i].equals("-tasks")) {
 				tasks = Integer.parseInt(args[++i]);
 				System.out.println("tasks--->" + tasks);
 			} else if (args[i].equals("-isLzo")) {
@@ -54,20 +52,25 @@ public class LeftRightRawCountDriver {
 				System.out.println("isLzo---->" + isLzo);
 			} else {
 				System.out.println("there exists invalid parameters--->" + args[i]);
-				break;
+				
 			}
-			
+
+		}
+
+		if(parameterValid){
+			System.out.println("parameters invalid!!!!");
+			System.exit(1);
 		}
 		
 		try {
-			
+
 			Configuration conf = new Configuration();
 			conf.setInt("startOrder", startOrder);
 			conf.setInt("endOrder", endOrder);
-			
+
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
-			
+
 			Job rawCountJob = Job.getInstance(conf, "rawCountJob");
 			System.out.println(rawCountJob.getJobName() + " is running!!!");
 			rawCountJob.setJarByClass(LeftRightRawCountDriver.class);
@@ -97,9 +100,9 @@ public class LeftRightRawCountDriver {
 			}
 
 			if (rawCountJob.waitForCompletion(true)) {
-				System.out.println(rawCountJob.getJobName()+" successed");
+				System.out.println(rawCountJob.getJobName() + " successed");
 			} else {
-				System.out.println(rawCountJob.getJobName()+" failed");
+				System.out.println(rawCountJob.getJobName() + " failed");
 			}
 
 		} catch (IOException e) {

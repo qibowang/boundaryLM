@@ -42,12 +42,14 @@ public class LeftRightRawCountMapper extends Mapper<LongWritable,Text,Text,IntWr
 	protected void map(LongWritable key, Text value, Mapper<LongWritable, Text, Text, IntWritable>.Context context)
 			throws IOException, InterruptedException {
 		line = value.toString();
+		line=processLine(line);
 		lineLine=line.length();
 		log.info("preLine--->"+preLine);
 		log.info("currentLine--->"+line);
 		if(lineLine<2*endOrder){
-			line=preLine+line;
-			lineLine+=preLineLen;
+			
+			preLine=preLine+line;
+			preLineLen=preLineLen+lineLine;
 			
 		}else{
 			
@@ -65,7 +67,6 @@ public class LeftRightRawCountMapper extends Mapper<LongWritable,Text,Text,IntWr
 				
 			}
 			
-			
 			for(orderTemp=startOrder;orderTemp<=endOrder;orderTemp++){
 				for(index=0;index<=lineLine-orderTemp;index++){
 					ngram=line.substring(index, index+orderTemp);
@@ -76,7 +77,45 @@ public class LeftRightRawCountMapper extends Mapper<LongWritable,Text,Text,IntWr
 				ngram=line.substring(index+1);
 				needSuppList.add(ngram+"\t"+orderTemp);
 			}
+			
+			preLine=line;
+			
 		}
 		
 	}
+	
+	private String processLine(String line) {
+		String posPattern = "/[a-zA-Z]{1,5}";
+		String numberRegrex = "\\d+[.,]?\\d*";
+		String numSign = "■";
+		line = line.replaceAll(posPattern, "");
+		line = line.replaceAll(numberRegrex, numSign);
+		line = noneHZRep(line);
+		line = line.replaceAll("(▲( ▲)*)+", "▲");
+		line = line.replaceAll("(■( ■)*)+", "■");
+		return line;
+	}
+
+	private static String noneHZRep(String line) {
+		StringBuffer sb = new StringBuffer();
+		char numSign = '■';
+		char triangleSign = '▲';
+		// numSign
+		char[] cArr = line.toCharArray();
+		for (char ch : cArr) {
+			// if('\u4e00' <= ch <= '\u9fff')
+			if (ch >= '\u4e00' && ch <= '\u9fff')
+				sb.append(ch);
+			else if (ch == numSign)
+				sb.append(ch);
+			else if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
+				sb.append(ch);
+			else if (ch == ' ')
+				sb.append(' ');
+			else
+				sb.append(triangleSign);
+		}
+		return sb.toString();
+	}
+
 }
