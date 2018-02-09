@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.LeftRightSegRawcount;
+package cn.edu.blcu.nlp.rawcountCrossLine;
 
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Created by root on 2017/5/24.
  */
-public class LeftRightRawCountReducer extends Reducer<Text,IntWritable,Text,LongWritable> {
+public class RawcountCrossLineReducer extends Reducer<Text,IntWritable,Text,LongWritable> {
 	private LongWritable resValue = new LongWritable();
 	@Override
 	protected void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {

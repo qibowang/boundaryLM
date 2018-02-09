@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.LeftRightSegRawcount;
+package cn.edu.blcu.nlp.rawcountCrossLine;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,80 +12,89 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LeftRightRawCountMapper extends Mapper<LongWritable,Text,Text,IntWritable>{
-	private final IntWritable ONE = new IntWritable(1);
+
+
+public class RawcountCrossLineMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
 	private Text resKey = new Text();
+	private final IntWritable ONE = new IntWritable(1);
+	private String ngram ="";
 	private int startOrder=1;
-	private int endOrder=3;
-	private String line="";
-	private String ngram="";
-	private List<String> needSuppList = new ArrayList<String>();
-	private int lineLine=0;
-	private String preLine="";
-	private int preLineLen=0;
-	private int orderTemp=1;
-	private int index=1;
+	private int endOrdert=3;
+	private String line;
+	private int lineLen;
+	private int index;
+	private int orderTemp;
 	private String items[];
-	private String needSuppStr="";
-	
-	private Logger log = LoggerFactory.getLogger(LeftRightRawCountMapper.class);
+	private String needSuppStr;
+	private String preLine="";
+
+	private List<String> list;
+	Logger log = LoggerFactory.getLogger(RawcountCrossLineMapper.class);
 	
 	@Override
-	protected void setup(Mapper<LongWritable, Text, Text, IntWritable>.Context context)
+	protected void setup(Context context)
 			throws IOException, InterruptedException {
 		Configuration conf = context.getConfiguration();
-		startOrder=conf.getInt("startOrder", startOrder);
-		endOrder=conf.getInt("endOrder", endOrder);
-		
+		startOrder = conf.getInt("startOrder", startOrder);
+		endOrdert = conf.getInt("endOrder", endOrdert);
+		list = new ArrayList<String>();
 	}
 	@Override
-	protected void map(LongWritable key, Text value, Mapper<LongWritable, Text, Text, IntWritable>.Context context)
-			throws IOException, InterruptedException {
+	protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+		
 		line = value.toString();
 		line=processLine(line);
-		lineLine=line.length();
-		log.info("preLine--->"+preLine);
-		log.info("currentLine--->"+line);
-		if(lineLine<2*endOrder){
-			
-			preLine=preLine+line;
-			preLineLen=preLineLen+lineLine;
+		lineLen=line.length();
+		line=preLine+line;
+		line = line.replaceAll("▲+", "▲");
+		line = line.replaceAll("■+", "■");
+		lineLen=line.length();
+		
+		log.info("line--->"+line);
+		if(lineLen<endOrdert){
+			preLine=line;
 			
 		}else{
-			
-			for(String str:needSuppList){
+			for(String str:list){
 				items=str.split("\t");
 				needSuppStr=items[0];
-				log.info("needSuppStr--->"+needSuppStr);
 				orderTemp=Integer.parseInt(items[1]);
-				for(index=1;index<needSuppStr.length();index++){
-					ngram=needSuppStr.substring(index)+line.substring(0,index);
+				log.info("before supp--->"+str);
+				for(index=0;index<orderTemp-1;index++){
+					
+					ngram=needSuppStr.substring(index)+line.substring(0,index+1);
 					log.info("after supp--->"+ngram);
 					resKey.set(ngram);
 					context.write(resKey, ONE);
 				}
 				
 			}
-			
-			for(orderTemp=startOrder;orderTemp<=endOrder;orderTemp++){
-				for(index=0;index<=lineLine-orderTemp;index++){
-					ngram=line.substring(index, index+orderTemp);
-					log.info("ngram---->"+ngram);
+			list.clear();
+			for(orderTemp=startOrder;orderTemp<=endOrdert;orderTemp++){
+				for(index=0;index<=lineLen-orderTemp;index++){
+					ngram = line.substring(index, index+orderTemp);
 					resKey.set(ngram);
 					context.write(resKey, ONE);
 				}
-				ngram=line.substring(index+1);
-				needSuppList.add(ngram+"\t"+orderTemp);
+				
+				if(orderTemp>1){
+					list.add(line.substring(index)+"\t"+orderTemp);
+				}
 			}
-			
-			preLine=line;
+			preLine="";
 			
 		}
 		
 	}
 	
+	
+	@Override
+	protected void cleanup(Context context)
+			throws IOException, InterruptedException {
+		list.clear();
+	}
 	private String processLine(String line) {
-		String posPattern = "/[a-zA-Z]{1,5}";
+		String posPattern = "( )?/[a-zA-Z]{1,5}( )?";
 		String numberRegrex = "\\d+[.,]?\\d*";
 		String numSign = "■";
 		line = line.replaceAll(posPattern, "");
@@ -93,6 +102,7 @@ public class LeftRightRawCountMapper extends Mapper<LongWritable,Text,Text,IntWr
 		line = noneHZRep(line);
 		line = line.replaceAll("(▲( ▲)*)+", "▲");
 		line = line.replaceAll("(■( ■)*)+", "■");
+		
 		return line;
 	}
 
@@ -117,5 +127,5 @@ public class LeftRightRawCountMapper extends Mapper<LongWritable,Text,Text,IntWr
 		}
 		return sb.toString();
 	}
-
+	
 }

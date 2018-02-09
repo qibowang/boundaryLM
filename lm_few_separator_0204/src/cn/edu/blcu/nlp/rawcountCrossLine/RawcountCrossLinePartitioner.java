@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.LeftRightSegRawcount;
+package cn.edu.blcu.nlp.rawcountCrossLine;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.IntWritable;
@@ -7,7 +7,7 @@ import org.apache.hadoop.mapreduce.lib.partition.HashPartitioner;
 /**
  * Created by root on 2017/5/24.
  */
-public class LeftRightRawCountPartitioner extends HashPartitioner<Text,IntWritable>{
+public class RawcountCrossLinePartitioner extends HashPartitioner<Text,IntWritable>{
 	@Override
 	public int getPartition(Text key, IntWritable value, int numReduceTasks) {
 		String line=key.toString();

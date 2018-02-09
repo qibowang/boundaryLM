@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.LeftRightSegRawcount;
+package cn.edu.blcu.nlp.rawcount;
 
 import java.io.IOException;
 
@@ -19,7 +19,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import com.hadoop.compression.lzo.LzoCodec;
 
-public class LeftRightRawCountDriver {
+public class RawcountCrossLineDriver {
 	public static void main(String[] args) {
 		int startOrder = 1;
 		int endOrder = 3;
@@ -27,7 +27,7 @@ public class LeftRightRawCountDriver {
 		String input = null;
 		String rawCountPath = null;
 		int isLzo = 0;// 等于0表示压缩
-
+		String lmFlag="";
 		boolean parameterValid=false;
 		int parameterNum = args.length;
 		
@@ -50,7 +50,10 @@ public class LeftRightRawCountDriver {
 			} else if (args[i].equals("-isLzo")) {
 				isLzo = Integer.parseInt(args[++i]);
 				System.out.println("isLzo---->" + isLzo);
-			} else {
+			} else if(args[i].equals("-lmFlag")){
+				lmFlag=args[++i];
+				System.out.println("lmFlag--->"+lmFlag);
+			}else {
 				System.out.println("there exists invalid parameters--->" + args[i]);
 				
 			}
@@ -71,14 +74,21 @@ public class LeftRightRawCountDriver {
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
 
-			Job rawCountJob = Job.getInstance(conf, "rawCountJob");
+			Job rawCountJob = Job.getInstance(conf, "cross line rawCountJob");
 			System.out.println(rawCountJob.getJobName() + " is running!!!");
-			rawCountJob.setJarByClass(LeftRightRawCountDriver.class);
-
-			rawCountJob.setMapperClass(LeftRightRawCountMapper.class);
-			rawCountJob.setReducerClass(LeftRightRawCountReducer.class);
-			rawCountJob.setCombinerClass(LeftRightRawCountCombiner.class);
-			rawCountJob.setPartitionerClass(LeftRightRawCountPartitioner.class);
+			rawCountJob.setJarByClass(RawcountCrossLineDriver.class);
+			if(lmFlag.equalsIgnoreCase("left")){
+				rawCountJob.setMapperClass(RawcountMapperLeft.class);
+			}else if(lmFlag.equalsIgnoreCase("right")){
+				rawCountJob.setMapperClass(RawcountMapperRight.class);
+			}else{
+				System.out.println("lmFlag is invalid");
+				System.exit(1);
+			}
+			
+			rawCountJob.setReducerClass(RawcountCrossLineReducer.class);
+			rawCountJob.setCombinerClass(RawcountCrossLineCombiner.class);
+			rawCountJob.setPartitionerClass(RawcountCrossLinePartitioner.class);
 			rawCountJob.setNumReduceTasks(tasks);
 
 			rawCountJob.setMapOutputKeyClass(Text.class);
