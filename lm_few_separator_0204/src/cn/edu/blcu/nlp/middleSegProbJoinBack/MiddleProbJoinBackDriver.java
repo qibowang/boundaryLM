@@ -26,6 +26,7 @@ public class MiddleProbJoinBackDriver {
 		int tasks=0;
 		int isLzo=0;
 		int index=0;
+		int gtmin=0;
 		String inputPaths[]=new String[10];
 		for(int i=0;i<args.length;i++){
 			if(args[i].equals("-input")){
@@ -45,6 +46,9 @@ public class MiddleProbJoinBackDriver {
 			}else if(args[i].equals("-isLzo")){
 				isLzo = Integer.parseInt(args[++i]);
 				System.out.println("isLzo--->"+isLzo);
+			}else if(args[i].equals("-gtmin")){
+				gtmin=Integer.parseInt(args[++i]);
+				System.out.println("gtmin--->"+gtmin);
 			}else{
 				System.out.println("there exists invalid parameters--->"+args[i]);
 				break;
@@ -55,7 +59,7 @@ public class MiddleProbJoinBackDriver {
 			Configuration conf = new Configuration();
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
-			
+			conf.setInt("gtmin", gtmin);
 			Job middleProbJoinProbJob = Job.getInstance(conf, "middle prob join back job");
 			
 			middleProbJoinProbJob.setJarByClass(MiddleProbJoinBackDriver.class);

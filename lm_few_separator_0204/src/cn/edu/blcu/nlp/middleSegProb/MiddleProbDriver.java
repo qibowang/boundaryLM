@@ -27,6 +27,7 @@ public class MiddleProbDriver {
 		String probPath="";
 		int isLzo=0;
 		int tasks=1;
+		int gtmin=1;
 		boolean parameterValid=false;
 		int parameterNum = args.length;
 		for(int i=0;i<parameterNum;i++){
@@ -45,6 +46,9 @@ public class MiddleProbDriver {
 			}else if(args[i].equals("-tasks")){
 				tasks=Integer.parseInt(args[++i]);
 				System.out.println("tasks-->"+tasks);
+			}else if(args[i].equals("-gtmin")){
+				gtmin=Integer.parseInt(args[++i]);
+				System.out.println("gtmin--->"+gtmin);
 			}else{
 				System.out.println("there exists invalid parameters--->"+args[i]);
 				parameterValid=true;
@@ -59,7 +63,7 @@ public class MiddleProbDriver {
 			Configuration conf = new Configuration();
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
-			
+			conf.setInt("gtmin", gtmin);
 			Job middleProbJob = Job.getInstance(conf,"middle prob job");
 			
 			middleProbJob.setJarByClass(MiddleProbDriver.class);
