@@ -13,7 +13,13 @@ public class MiddleBackReducer extends Reducer<Text,Text,Text,Text>{
 	private Text resKey = new Text();
 	private Text resValue = new Text();
 	private String[] items;
-	
+	private long rawcount=0l;
+	private int gtmin=1;
+	@Override
+	protected void setup(Context context) throws IOException, InterruptedException {
+		Configuration conf = context.getConfiguration();
+		gtmin=conf.getInt("gtmin", gtmin);
+	}
 	@Override
 	protected void reduce(Text key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
@@ -22,8 +28,11 @@ public class MiddleBackReducer extends Reducer<Text,Text,Text,Text>{
 		long rawcountSum=0l;
 		for(Text value:values){
 			items=value.toString().split("\t");
-			rawcountSum+=Long.parseLong(items[1]);
-			list.add(WritableUtils.clone(value, conf));
+			rawcount=Long.parseLong(items[1]);
+			rawcountSum+=rawcount;
+			if(rawcount>=gtmin){
+				list.add(WritableUtils.clone(value, conf));
+			}
 		}
 		for(Text value:list){
 			items=value.toString().split("\t");

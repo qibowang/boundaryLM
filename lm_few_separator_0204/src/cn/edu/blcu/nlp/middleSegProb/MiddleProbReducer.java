@@ -17,7 +17,6 @@ public class MiddleProbReducer extends Reducer<Text, Text, Text, Text> {
 	private String joinValueStr = "";
 	private String ngram;
 	int gtmin = 1;
-	
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
@@ -36,7 +35,10 @@ public class MiddleProbReducer extends Reducer<Text, Text, Text, Text> {
 			joinValueStr = value.toString();
 			items = joinValueStr.split("\t");
 			if (items.length == 2) {
-				list.add(WritableUtils.clone(value, conf));
+				numerator = Long.parseLong(items[1]);
+				if (numerator >= gtmin) {
+					list.add(WritableUtils.clone(value, conf));
+				}
 			} else {
 				denominator = Long.parseLong(joinValueStr);
 			}
@@ -48,12 +50,12 @@ public class MiddleProbReducer extends Reducer<Text, Text, Text, Text> {
 				items = joinValueStr.split("\t");
 				ngram = items[0];
 				numerator = Long.parseLong(items[1]);
-				if (numerator >= gtmin) {
-					prob = (double) numerator / denominator;
-					resKey.set(ngram);
-					resValue.set(prob + "\t" + numerator);
-					context.write(resKey, resValue);
-				}
+				// if (numerator >= gtmin) {
+				prob = (double) numerator / denominator;
+				resKey.set(ngram);
+				resValue.set(prob + "\t" + numerator);
+				context.write(resKey, resValue);
+				// }
 			}
 		}
 	}

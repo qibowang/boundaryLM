@@ -24,6 +24,7 @@ public class MiddleBackDriver{
 		String backPath="";
 		int isLzo=0;
 		int tasks=1;
+		int gtmin=1;
 		Path outputPath=null;
 		FileSystem fs = null;
 		boolean parameterValid=false;
@@ -43,6 +44,9 @@ public class MiddleBackDriver{
 			}else if(args[i].equals("-back")){
 				backPath=args[++i];
 				System.out.println("backPath--->"+backPath);
+			}else if(args[i].equals("-gtmin")){
+				gtmin=Integer.parseInt(args[++i]);
+				System.out.println("gtmin--->"+gtmin);
 			}else{
 				System.out.println("there exists invalid parameters--->"+args[i]);
 				parameterValid=true;
@@ -58,6 +62,7 @@ public class MiddleBackDriver{
 			Configuration conf = new Configuration();
 			conf.setBoolean("mapreduce.compress.map.output", true);
 			conf.setClass("mapreduce.map.output.compression.codec", LzoCodec.class, CompressionCodec.class);
+			conf.setInt("gtmin", gtmin);
 			
 			Job middleBackJob = Job.getInstance(conf,"middle back job");
 			
