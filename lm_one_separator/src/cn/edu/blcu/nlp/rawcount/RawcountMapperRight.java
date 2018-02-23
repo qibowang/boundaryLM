@@ -1,6 +1,7 @@
 package cn.edu.blcu.nlp.rawcount;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,86 +46,123 @@ public class RawcountMapperRight extends Mapper<LongWritable, Text, Text, IntWri
 
 	@Override
 	protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-
-		line = value.toString();
+		try {
+			line = new String(value.getBytes(), 0, value.getLength(), "gbk");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
 		line = processLine(line);
-		lineLen = line.length();
+
 		line = preLine + line;
 		line = line.replaceAll("▲+", "▲");
 		line = line.replaceAll("■+", "■");
 		lineLen = line.length();
 
-		log.info("line--->" + line);
+		//log.info("line--->" + line);
 		if (lineLen < endOrdert) {
 			preLine = line;
 		} else {
 			for (String str : list) {
 				items = str.split("\t");
-				needSuppStr = items[0];
-				orderTemp = Integer.parseInt(items[1]);
-				log.info("before supp--->" + str);
-				for (index = 0; index < orderTemp - 1; index++) {
-					ngram = needSuppStr.substring(index) + line.substring(0, index + 1);
-					ngram = removeRedundantSpparator(ngram, SEPARATOR_STRING);
-					wordsNum = ngram.length();
-					needSuppNum = orderTemp - wordsNum;
-					if (needSuppNum == 0) {
-						resKey.set(ngram);
-						context.write(resKey, ONE);
-					} else {
-						sbTmp.setLength(0);
-						for (suppIndex = index + 1; suppIndex < lineLen; suppIndex++) {
-							cTmp = line.charAt(suppIndex);
-							if (cTmp != SEPARATOR_CHAR) {
-								sbTmp.append(cTmp);
-								needSuppNum--;
-							}
-							if (needSuppNum == 0) {
-								resKey.set(ngram + sbTmp.toString());
-								context.write(resKey, ONE);
-								break;
+				if (items.length == 2) {
+					needSuppStr = items[0];
+					orderTemp = Integer.parseInt(items[1]);
+					//log.info("cross line before supp--->" + str);
+					for (index = 0; index < orderTemp - 1; index++) {
+						ngram = needSuppStr.substring(index) + line.substring(0, index + 1);
+						ngram = removeRedundantSpparator(ngram, SEPARATOR_STRING);
+						wordsNum = ngram.length();
+						needSuppNum = orderTemp - wordsNum;
+						if (needSuppNum == 0) {
+							resKey.set(ngram);
+						//	log.info("ngram--->"+ngram);
+							context.write(resKey, ONE);
+						} else {
+							sbTmp.setLength(0);
+							for (suppIndex = index + 1; suppIndex < lineLen; suppIndex++) {
+								cTmp = line.charAt(suppIndex);
+								if (cTmp != SEPARATOR_CHAR) {
+									sbTmp.append(cTmp);
+									needSuppNum--;
+								}
+								if (needSuppNum == 0) {
+									resKey.set(ngram + sbTmp.toString());
+							//		log.info("ngram====>"+resKey.toString());
+									context.write(resKey, ONE);
+									break;
+								}
 							}
 						}
+						//log.info("cross line after supp--->" + resKey.toString());
 					}
-					log.info("after supp--->" + ngram);
-
+				}else if(items.length==3){
+					sbTmp.setLength(0);
+					//log.info("inner cross line before supp--->" + str);
+					needSuppStr = items[0];
+					needSuppStr=removeRedundantSpparator(needSuppStr, SEPARATOR_STRING);
+					wordsNum=needSuppStr.length();
+					
+					
+					orderTemp = Integer.parseInt(items[1]);
+					needSuppNum=orderTemp-wordsNum;
+					for(suppIndex = 0; suppIndex < lineLen; suppIndex++){
+						cTmp = line.charAt(suppIndex);
+						if (cTmp != SEPARATOR_CHAR) {
+							sbTmp.append(cTmp);
+							needSuppNum--;
+						}
+						if (needSuppNum == 0) {
+							resKey.set(needSuppStr + sbTmp.toString());
+						//	log.info("inner cross line after supp--->" + resKey.toString());
+							context.write(resKey, ONE);
+							break;
+						}
+					} 
 				}
-
 			}
 			list.clear();
 			for (orderTemp = startOrder; orderTemp <= endOrdert; orderTemp++) {
 				for (index = 0; index <= lineLen - orderTemp; index++) {
 					ngram = line.substring(index, index + orderTemp);
-					ngram = removeRedundantSpparator(ngram, SEPARATOR_STRING);
-					wordsNum = ngram.length();
-					needSuppNum = orderTemp - wordsNum;
-					if (needSuppNum == 0) {
+					log.info("ngram---->"+ngram);
+					if(orderTemp==1){
 						resKey.set(ngram);
 						context.write(resKey, ONE);
-					} else {
-						sbTmp.setLength(0);
-						for (suppIndex = index + orderTemp; suppIndex < lineLen; suppIndex++) {
-							cTmp = line.charAt(suppIndex);
-							if (cTmp == SEPARATOR_CHAR) {
-								sbTmp.append(cTmp);
-								needSuppNum--;
-							}
-							if (needSuppNum == 0) {
-								resKey.set(ngram + sbTmp.toString());
-								context.write(resKey, ONE);
-								break;
+					}else{
+						ngram = removeRedundantSpparator(ngram, SEPARATOR_STRING);
+						wordsNum = ngram.length();
+						needSuppNum = orderTemp - wordsNum;
+						if (needSuppNum == 0) {
+							resKey.set(ngram);
+							context.write(resKey, ONE);
+						} else {
+							sbTmp.setLength(0);
+							for (suppIndex = index + orderTemp; suppIndex < lineLen; suppIndex++) {
+								cTmp = line.charAt(suppIndex);
+								if (cTmp != SEPARATOR_CHAR) {
+									sbTmp.append(cTmp);
+									needSuppNum--;
+								}
+								if (needSuppNum == 0) {
+									resKey.set(ngram + sbTmp.toString());
+									context.write(resKey, ONE);
+									break;
+								}
+							}						
+							if(needSuppNum != 0){
+								list.add(ngram + sbTmp.toString() + "\t" + orderTemp+"\t"+" ");
 							}
 						}
+					
 					}
 				}
-
 				if (orderTemp > 1) {
 					list.add(line.substring(index) + "\t" + orderTemp);
 				}
 			}
 			preLine = "";
 		}
-
 	}
 
 	@Override
@@ -170,10 +208,11 @@ public class RawcountMapperRight extends Mapper<LongWritable, Text, Text, IntWri
 	private String removeRedundantSpparator(String ngram, String separatorStr) {
 
 		if (ngram.charAt(0) == SEPARATOR_CHAR) {
-			ngram = ngram.replace(separatorStr, "");
-			return ngram + separatorStr;
+			ngram = ngram.replaceAll(separatorStr, "");
+			return separatorStr+ngram;
+			
 		} else {
-			ngram = ngram.replace(separatorStr, "");
+			ngram = ngram.replaceAll(separatorStr, "");
 			return ngram;
 		}
 

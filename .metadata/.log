@@ -1,0 +1,16 @@
+!SESSION 2018-02-19 15:13:20.733 -----------------------------------------------
+eclipse.buildId=4.5.2.M20160212-1500
+java.version=1.8.0_111
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=zh_CN
+Framework arguments:  -product org.eclipse.epp.package.committers.product
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 -product org.eclipse.epp.package.committers.product
+
+!ENTRY org.eclipse.emf.ecore 2 0 2018-02-19 15:13:51.565
+!MESSAGE Both 'org.eclipse.m2e.model.edit' and 'org.maven.ide.eclipse.maven_model_edit' register a package for 'http://maven.apache.org/POM/4.0.0'
+
+!ENTRY org.eclipse.emf.ecore 2 0 2018-02-19 15:13:51.587
+!MESSAGE Both 'org.eclipse.m2e.model.edit' and 'org.maven.ide.eclipse.maven_model_edit' register an extension parser for 'pom'
+
+!ENTRY org.eclipse.core.net 4 0 2018-02-19 15:14:18.986
+!MESSAGE WinHttp.GetProxyForUrl for pac failed with error '²»ÄÜÏÂÔشúÀí·þÎñÆ÷×Զ¯ÅäÖ' #12167.

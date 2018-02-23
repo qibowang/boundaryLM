@@ -1,4 +1,4 @@
-package cn.edu.blcu.nlp.rawcount;
+package cn.edu.blcu.nlp.middleSegRawcountDenominator0220;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -10,33 +10,27 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class RawcountMapperLeft extends Mapper<LongWritable, Text, Text, IntWritable> {
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+
+public class DenominatorMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
 	private Text resKey = new Text();
 	private final IntWritable ONE = new IntWritable(1);
-	private final char SEPARATOR_CHAR = '▲';
-	private final String SEPARATOR_STRING = "▲";
+
 	private String ngram = "";
-	private int startOrder = 1;
-	private int endOrdert = 3;
+	private int startOrder = 3;
+	private int endOrdert = 4;
 	private String line;
 	private int lineLen;
 	private int index;
-	private int suppIndex=0;
 	private int orderTemp;
 	private String items[];
 	private String needSuppStr;
 	private String preLine = "";
-	private String preLineTmp="";//记录上一行内容便于对左进行扩展
-	private int preLineTmpLen=0;
-	private int wordsNum;
-	private int needSuppNum=0;
+
 	private List<String> list;
-	private char cTmp;
-	private StringBuffer sbTmp = new StringBuffer();
-	Logger log = LoggerFactory.getLogger(RawcountMapperLeft.class);
+	//Logger log = LoggerFactory.getLogger(DenominatorMapper.class);
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
@@ -48,20 +42,18 @@ public class RawcountMapperLeft extends Mapper<LongWritable, Text, Text, IntWrit
 
 	@Override
 	protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-
 		try {
 			line = new String(value.getBytes(), 0, value.getLength(), "gbk");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
+		
 		line = processLine(line);
-		lineLen = line.length();
 		line = preLine + line;
-		line = line.replaceAll("▲+", "▲");
+		line = line.replaceAll("▲+", "");
 		line = line.replaceAll("■+", "■");
 		lineLen = line.length();
-
-		log.info("line--->" + line);
+		//log.info("line--->" + line);
 		if (lineLen < endOrdert) {
 			preLine = line;
 		} else {
@@ -69,73 +61,31 @@ public class RawcountMapperLeft extends Mapper<LongWritable, Text, Text, IntWrit
 				items = str.split("\t");
 				needSuppStr = items[0];
 				orderTemp = Integer.parseInt(items[1]);
-				log.info("before supp--->" + str);
+				//log.info("cross line before supp--->" + str);
 				for (index = 0; index < orderTemp - 1; index++) {
 					ngram = needSuppStr.substring(index) + line.substring(0, index + 1);
-					ngram=removeRedundantSpparator(ngram, orderTemp, SEPARATOR_STRING);
-					wordsNum=ngram.length();
-					needSuppNum=orderTemp-wordsNum;
-					if(needSuppNum==0){
-						resKey.set(ngram);
-						context.write(resKey, ONE);
-					}else{
-						sbTmp.setLength(0);
-						
-						for(suppIndex=index+1;suppIndex<lineLen;suppIndex++){
-							cTmp=line.charAt(suppIndex);
-							if(cTmp!=SEPARATOR_CHAR){
-								sbTmp.append(cTmp);
-								needSuppNum--;
-							}
-							if(needSuppNum==0){
-								resKey.set(ngram+sbTmp.toString());
-								context.write(resKey, ONE);
-								break;
-							}
-						}
-					}
-					log.info("after supp--->" + ngram);
-					
+					//log.info("cross line supp--->"+ngram);
+					resKey.set(ngram);
+					context.write(resKey, ONE);
 				}
-
 			}
 			list.clear();
 			for (orderTemp = startOrder; orderTemp <= endOrdert; orderTemp++) {
+				//log.info("order--->"+orderTemp);
 				for (index = 0; index <= lineLen - orderTemp; index++) {
 					ngram = line.substring(index, index + orderTemp);
-					ngram=removeRedundantSpparator(ngram, orderTemp, SEPARATOR_STRING);
-					wordsNum=ngram.length();
-					needSuppNum=orderTemp-wordsNum;
-					if(needSuppNum==0){
-						resKey.set(ngram);
-						log.info("ngram--->"+ngram);
-						context.write(resKey, ONE);
-					}else{
-						sbTmp.setLength(0);
-						preLineTmpLen=preLineTmp.length();
-						for(suppIndex=preLineTmpLen-1;suppIndex>=0;suppIndex--){
-							cTmp=line.charAt(suppIndex);
-							if(cTmp!=SEPARATOR_CHAR){
-								sbTmp.append(cTmp);
-								needSuppNum--;
-							}
-							if(needSuppNum==0){
-								resKey.set(ngram+sbTmp.reverse().toString());
-								log.info("ngram===>"+resKey.toString());
-								context.write(resKey, ONE);
-								break;
-							}
-						}
-					}
+					//log.info("ngram--->"+ngram);
+					resKey.set(ngram);
+					context.write(resKey, ONE);
 				}
-
 				if (orderTemp > 1) {
+					
 					list.add(line.substring(index) + "\t" + orderTemp);
 				}
 			}
+			
 			preLine = "";
 		}
-		preLineTmp=line;
 	}
 
 	@Override
@@ -178,15 +128,4 @@ public class RawcountMapperLeft extends Mapper<LongWritable, Text, Text, IntWrit
 		return sb.toString();
 	}
 
-	private String removeRedundantSpparator(String ngram, int wordsNum, String separatorStr) {
-
-		if (ngram.charAt(wordsNum - 1) == SEPARATOR_CHAR) {
-			ngram = ngram.replaceAll(separatorStr, "");
-			return ngram + separatorStr;
-		} else {
-			ngram = ngram.replaceAll(separatorStr, "");
-			return ngram;
-		}
-
-	}
 }
